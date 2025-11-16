@@ -5,9 +5,7 @@ import sqlalchemy as sa
 import sqlalchemy.orm as so
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-import jwt
-from time import time
-from ...run import app
+# proxima integracion con JWT
 
 class User(UserMixin,db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
@@ -20,16 +18,3 @@ class User(UserMixin,db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password) #it compares the hashed password to the one the user just wrote
-    
-    def get_reset_password_token(self,expires_in=600):
-        return jwt.encode({"reset_password": self.id, "exp": time() + expires_in},
-                    app.config["SECRET_KEY"], algorithm="HS256")
-    
-    @staticmethod
-    def verify_reste_password_token(token):
-        try:
-            id = jwt.decode(token, app.config["SECRET_KEY"],
-                            algorithms=["HS256"])["reset_password"]
-        except:
-            return
-        return db.session.get(User, id)
