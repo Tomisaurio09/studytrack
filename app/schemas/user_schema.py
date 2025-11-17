@@ -28,3 +28,36 @@ class RegisterSchema(Schema):
 class LoginSchema(Schema):
     username = fields.Str(required=True)
     password = fields.Str(required=True)
+
+
+class SubjectSchema(Schema):
+    name = fields.Str(required=True)
+    description = fields.Str(required=True)
+    total_hours_goal = fields.Int(required=True)
+    total_hours_completed = fields.Int(required=False, load_default=0)
+    priority_level = fields.Str(required=True)
+    status = fields.Str(required=True)
+
+    @validates("total_hours_goal")
+    def validate_hours_goal(self, value, **kwargs):
+        if value < 0:
+            raise ValidationError("Total hours goal must be non-negative.")
+
+
+class EditSubjectSchema(Schema):
+    name = fields.Str(required=True)
+    description = fields.Str(required=True)
+    total_hours_goal = fields.Int(required=True)
+    total_hours_completed = fields.Int(required=True)
+    priority_level = fields.Str(required=True)
+    status = fields.Str(required=True)
+
+    @validates("total_hours_goal")
+    def validate_hours_goal(self, value, **kwargs):
+        if value < 0:
+            raise ValidationError("Total hours goal must be non-negative.")
+
+    @validates("total_hours_completed")
+    def validate_hours_completed(self, value, **kwargs):
+        if value < 0:
+            raise ValidationError("Total hours completed must be non-negative.")
