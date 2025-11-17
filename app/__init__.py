@@ -41,6 +41,8 @@ def create_app(env="development"):
         api.register_blueprint(auth_bp)
         from app.routes.subject_routes import subject_bp
         api.register_blueprint(subject_bp)
+        from app.routes.study_sessions_routes import study_sessions_bp
+        api.register_blueprint(study_sessions_bp)
     except Exception:
         # if routes fail to import, avoid breaking app creation
         pass

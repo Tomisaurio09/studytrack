@@ -17,8 +17,12 @@ class User(UserMixin, db.Model):
     email: so.Mapped[str] = so.mapped_column(sa.String(120), index=True, unique=True)
     password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(256))
 
-    # Relación con Subject (one-to-many: un usuario tiene muchos subjects)
-    subjects: so.Mapped[list["Subject"]] = so.relationship("Subject", back_populates="user")
+    # Relación con Subject (one-to-many)
+    subjects: so.Mapped[list["Subject"]] = so.relationship(
+        "Subject",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
@@ -55,6 +59,26 @@ class Subject(db.Model):
     priority_level: so.Mapped[PriorityLevel] = so.mapped_column(SqlEnum(PriorityLevel), default=PriorityLevel.MEDIUM)
     status: so.Mapped[SubjectStatus] = so.mapped_column(SqlEnum(SubjectStatus), default=SubjectStatus.ACTIVE)
 
-    # Relación con User (many-to-one: muchos subjects pertenecen a un usuario)
+    # Relación con User (many-to-one)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("user.id"), nullable=False)
     user: so.Mapped[User] = so.relationship("User", back_populates="subjects")
+
+    # Relación con Sessions (one-to-many)
+    study_sessions: so.Mapped[list["StudySessions"]] = so.relationship(
+        "StudySessions",
+        back_populates="subject",
+        cascade="all, delete-orphan"
+    )
+
+
+class StudySessions(db.Model):
+    __tablename__ = "study_sessions"
+
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    start_time: so.Mapped[datetime] = so.mapped_column(sa.DateTime, default=datetime.now(timezone.utc))
+    end_time: so.Mapped[Optional[datetime]] = so.mapped_column(sa.DateTime, nullable=True)
+    duration_minutes: so.Mapped[Optional[int]] = so.mapped_column(sa.Integer, nullable=True)
+
+    # Relación con Subject (many-to-one: muchas sesiones pertenecen a un subject)
+    subject_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("subject.id"), nullable=False)
+    subject: so.Mapped[Subject] = so.relationship("Subject", back_populates="study_sessions")
