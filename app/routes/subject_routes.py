@@ -4,7 +4,7 @@ from app import db
 from flask_smorest import Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask.views import MethodView
-from app.schemas.user_schema import SubjectSchema, EditSubjectSchema
+from app.schemas.subject_schema import SubjectSchema, EditSubjectSchema  # Fixed import
 from datetime import datetime, timezone
 
 subject_bp = Blueprint("subject", "subject", url_prefix="/subjects")
@@ -51,8 +51,8 @@ class SubjectListCreate(MethodView):
                 "total_hours_completed": s.total_hours_completed,
                 "priority_level": s.priority_level.value,
                 "status": s.status.value,
-                "created_at": s.created_at.isoformat(),
-                "updated_at": s.updated_at.isoformat(),
+                "created_at": s.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                "updated_at": s.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
             }
             for s in subjects
         ]
