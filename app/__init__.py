@@ -35,6 +35,10 @@ def create_app(env="development"):
     # Initialize JWT manager for token creation/validation
     jwt.init_app(app)
     
+    # Initialize limiter BEFORE importing routes (so @limiter.limit decorators work)
+    from app.utils.limiters import limiter
+    limiter.init_app(app)
+    
     # Register blueprints with the API
     try:
         from app.routes.auth_routes import auth_bp
@@ -43,9 +47,11 @@ def create_app(env="development"):
         api.register_blueprint(subject_bp)
         from app.routes.study_sessions_routes import study_sessions_bp
         api.register_blueprint(study_sessions_bp)
-    except Exception:
-        # if routes fail to import, avoid breaking app creation
-        pass
+    except Exception as e:
+        # Print error so it's visible (instead of silently failing)
+        print(f"Error registering blueprints: {e}")
+        import traceback
+        traceback.print_exc()
 
     return app
 

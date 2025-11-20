@@ -5,6 +5,8 @@ from flask_smorest import Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask.views import MethodView
 from app.schemas.study_sessions_schema import StudySessionsSchema, EditStudySessionsSchema # Fixed import
+from app.utils.limiters import limiter
+from app.utils.error_handler import too_many_requests
 
 from datetime import datetime, timezone
 
@@ -17,6 +19,7 @@ class StudySessionListCreate(MethodView):
     @jwt_required()
     @study_sessions_bp.arguments(StudySessionsSchema)
     @study_sessions_bp.response(201)
+    @limiter.limit("70 per hour")
     def post(self, session_data):
         """Create a new session for the subject for the current user"""
         current_user_id = int(get_jwt_identity())
@@ -50,6 +53,7 @@ class StudySessionListCreate(MethodView):
         }, 201
     
     @jwt_required()
+    @limiter.limit("90 per hour")
     def get(self):
         """Get all sessions for the current subject"""
         current_user_id = int(get_jwt_identity())
@@ -78,6 +82,7 @@ class StudySessionDetail(MethodView):
     @jwt_required()
     @study_sessions_bp.arguments(EditStudySessionsSchema)
     @study_sessions_bp.response(200)
+    @limiter.limit("70 per hour")
     def put(self, session_data, id):
         """Update a study session"""
         current_user_id = int(get_jwt_identity())
@@ -105,6 +110,7 @@ class StudySessionDetail(MethodView):
         return {"message": "Session updated successfully"}, 200
     
     @jwt_required()
+    @limiter.limit("50 per hour")
     def delete(self, id):
         current_user_id = int(get_jwt_identity())
 

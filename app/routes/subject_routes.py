@@ -6,6 +6,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask.views import MethodView
 from app.schemas.subject_schema import SubjectSchema, EditSubjectSchema  # Fixed import
 from datetime import datetime, timezone
+from app.utils.limiters import limiter
+from app.utils.error_handler import too_many_requests
 
 subject_bp = Blueprint("subject", "subject", url_prefix="/subjects")
 
@@ -15,6 +17,7 @@ class SubjectListCreate(MethodView):
     @jwt_required()
     @subject_bp.arguments(SubjectSchema)
     @subject_bp.response(201)
+    @limiter.limit("70 per hour")
     def post(self, user_data):
         """Create a new subject for the current user"""
         current_user_id = int(get_jwt_identity())
@@ -38,6 +41,7 @@ class SubjectListCreate(MethodView):
         }, 201
 
     @jwt_required()
+    @limiter.limit("60 per hour")
     def get(self):
         """Get all subjects for the current user"""
         current_user_id = int(get_jwt_identity())
@@ -85,6 +89,7 @@ class SubjectDetail(MethodView):
         return {"message": "Subject updated successfully"}, 200
 
     @jwt_required()
+    @limiter.limit("50 per hour")
     def delete(self, id):
         """Delete a subject (only owner can delete)"""
         current_user_id = int(get_jwt_identity())
