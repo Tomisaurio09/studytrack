@@ -38,7 +38,14 @@ def create_app(env="development"):
     # Initialize limiter BEFORE importing routes (so @limiter.limit decorators work)
     from app.utils.limiters import limiter
     limiter.init_app(app)
-    
+    # Ensure limiter-related handlers/filters are registered
+    try:
+        # importing this module registers request filters (no-op if already imported)
+        from app.utils import error_handler  # registers request_filter
+    except Exception:
+        # keep going even if error handler import fails; we'll print later
+        pass
+
     # Register blueprints with the API
     try:
         from app.routes.auth_routes import auth_bp
@@ -52,6 +59,19 @@ def create_app(env="development"):
         print(f"Error registering blueprints: {e}")
         import traceback
         traceback.print_exc()
+
+    # Register a JSON handler for rate limit exceptions so clients receive a
+    # consistent JSON 429 response instead of HTML.
+    try:
+        from flask_limiter.errors import RateLimitExceeded
+        from flask import jsonify
+
+        @app.errorhandler(RateLimitExceeded)
+        def _handle_rate_limit(e):
+            return jsonify({"error": "Too Many Requests"}), 429
+    except Exception:
+        # If flask-limiter isn't available for some reason, continue silently
+        pass
 
     return app
 

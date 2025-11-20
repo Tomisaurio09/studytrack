@@ -6,7 +6,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token
 from flask.views import MethodView
 from app.schemas.user_schema import RegisterSchema, LoginSchema
 from app.utils.limiters import limiter
-from app.utils.error_handler import too_many_requests
+from app.utils.error_handler import internal_request_exempt
 
 auth_bp = Blueprint("auth", "auth", url_prefix="/auth")
 
@@ -15,7 +15,7 @@ auth_bp = Blueprint("auth", "auth", url_prefix="/auth")
 class RegisterResource(MethodView):
     @auth_bp.arguments(RegisterSchema)
     @auth_bp.response(201)
-    @limiter.limit("2 per minute")
+    @limiter.limit("20 per hour")
     def post(self, user_data):
         if User.query.filter_by(username=user_data["username"]).first():
             return {"error": "This username already exists"}, 400
@@ -39,7 +39,7 @@ class RegisterResource(MethodView):
 class LoginResource(MethodView):
     @auth_bp.arguments(LoginSchema)
     @auth_bp.response(201)
-    @limiter.limit("3 per minute")
+    @limiter.limit("20 per hour")
     def post(self, user_data):
         user = User.query.filter_by(username=user_data["username"]).first()
         if user and user.check_password(user_data["password"]):

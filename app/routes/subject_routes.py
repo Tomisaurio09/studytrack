@@ -7,7 +7,7 @@ from flask.views import MethodView
 from app.schemas.subject_schema import SubjectSchema, EditSubjectSchema  # Fixed import
 from datetime import datetime, timezone
 from app.utils.limiters import limiter
-from app.utils.error_handler import too_many_requests
+from app.utils.error_handler import internal_request_exempt
 
 subject_bp = Blueprint("subject", "subject", url_prefix="/subjects")
 
