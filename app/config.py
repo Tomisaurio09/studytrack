@@ -6,10 +6,10 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret")
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_TRACK_MODIFICATIONS = os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS", "False") == "True"
     JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "jwt-secret-key")
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
-    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
 
 class DevConfig(Config):
     DEBUG = True

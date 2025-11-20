@@ -12,14 +12,14 @@ class StudySessionsSchema(Schema):
         try:
             datetime.strptime(value, "%I:%M%p")
         except ValueError:
-            raise ValidationError("El formato debe ser HH:MMAM/PM, por ejemplo 03:00PM")
+            raise ValidationError("The format must be HH:MMAM/PM, e.g., 03:00PM")
 
     @validates("end_time")
     def validate_end(self, value, **kwargs):
         try:
             datetime.strptime(value, "%I:%M%p")
         except ValueError:
-            raise ValidationError("El formato debe ser HH:MMAM/PM, por ejemplo 03:00PM")
+            raise ValidationError("The format must be HH:MMAM/PM, e.g., 03:00PM")
     
     @validates_schema
     def validate_time_order(self, data, **kwargs):
@@ -27,7 +27,7 @@ class StudySessionsSchema(Schema):
         end = datetime.strptime(data["end_time"], "%I:%M%p")
 
         if end <= start:
-            raise ValidationError({"end_time": "La hora de salida debe ser posterior a la de entrada"})
+            raise ValidationError({"end_time": "The end time must be later than the start time"})
 
 
 
@@ -41,14 +41,14 @@ class EditStudySessionsSchema(Schema):
         try:
             datetime.strptime(value, "%I:%M%p")
         except ValueError:
-            raise ValidationError("El formato debe ser HH:MMAM/PM, por ejemplo 03:00PM")
+            raise ValidationError("The format must be HH:MMAM/PM, e.g., 03:00PM")
 
     @validates("end_time")
     def validate_end(self, value, **kwargs):
         try:
             datetime.strptime(value, "%I:%M%p")
         except ValueError:
-            raise ValidationError("El formato debe ser HH:MMAM/PM, por ejemplo 03:00PM")
+            raise ValidationError("The format must be HH:MMAM/PM, e.g., 03:00PM")
 
     @validates_schema
     def validate_time_order(self, data, **kwargs):
@@ -56,4 +56,4 @@ class EditStudySessionsSchema(Schema):
         end = datetime.strptime(data["end_time"], "%I:%M%p")
 
         if end <= start:
-            raise ValidationError({"end_time": "La hora de salida debe ser posterior a la de entrada"})
+            raise ValidationError({"end_time": "The end time must be later than the start time"})

@@ -15,9 +15,9 @@ class RegisterResource(MethodView):
     @auth_bp.response(201)
     def post(self, user_data):
         if User.query.filter_by(username=user_data["username"]).first():
-            return {"error": "Ese nombre de usuario ya está en uso"}, 400
+            return {"error": "This username already exists"}, 400
         if User.query.filter_by(email=user_data["email"]).first():
-            return {"error": "Ese email ya está en uso"}, 400
+            return {"error": "This email is already in use"}, 400
 
         new_user = User(
             username=user_data["username"],
@@ -28,13 +28,8 @@ class RegisterResource(MethodView):
         db.session.add(new_user)
         db.session.commit()
 
-        access_token = create_access_token(identity=str(new_user.id))
-        refresh_token = create_refresh_token(identity=str(new_user.id))
-
         return jsonify({
-            "message": "Usuario creado con éxito",
-            "access_token": access_token,
-            "refresh_token": refresh_token
+            "message": "User created successfully"
         })
 
 @auth_bp.route("/login")
@@ -48,7 +43,7 @@ class LoginResource(MethodView):
             refresh_token = create_refresh_token(identity=str(user.id))
 
             return jsonify({
-                "message": "Inicio de sesión exitoso",
+                "message": "Login successful",
                 "access_token": access_token,
                 "refresh_token": refresh_token
             })
