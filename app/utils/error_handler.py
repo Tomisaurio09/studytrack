@@ -1,27 +1,30 @@
-from flask import request
-from app.utils.limiters import limiter
+from flask import jsonify
+from flask_limiter.errors import RateLimitExceeded
+from sqlalchemy.exc import SQLAlchemyError
+from marshmallow import ValidationError
 
+def register_error_handlers(app):
+    @app.errorhandler(SQLAlchemyError)
+    def handle_db_error(e):
+        return jsonify({"error": "Database error", "details": str(e)}), 500
 
-@limiter.request_filter
-def internal_request_exempt():
-    """Return True to exempt internal/health requests from rate limiting.
+    @app.errorhandler(404)
+    def not_found_error(e):
+        return jsonify({"error": "Resource not found"}), 404
 
-    - Exempts localhost (::1 and 127.0.0.1).
-    - Exempts a `/health` endpoint if you add one.
-    - Return False to let limiter evaluate limits normally.
-    """
-    try:
-        # Exempt local requests (useful for internal tooling/tests)
-        #if request.remote_addr in ("127.0.0.1", "::1"):
-        #   return True
+    @app.errorhandler(500)
+    def internal_error(e):
+        return jsonify({"error": "Internal server error"}), 500
 
-        # Exempt health check endpoint if present
-        if request.path == "/health":
-            return True
-    except RuntimeError:
-        # No request context — don't exempt
-        return False
+    @app.errorhandler(RateLimitExceeded)
+    def handle_rate_limit(e):
+        return jsonify({"error": "Too Many Requests"}), 429
 
-    return False
+    @app.errorhandler(ValidationError)
+    def handle_validation_error(e):
+        return jsonify({"errors": e.messages}), 400
 
+    @app.errorhandler(405)
+    def method_not_allowed(e):
+        return jsonify({"error": "Method not allowed"}), 405
 

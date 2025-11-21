@@ -5,7 +5,6 @@ class StudySessionsSchema(Schema):
     subject_id = fields.Int(required=True)
     start_time = fields.Str(required=True)
     end_time = fields.Str(required=True)
-    subject_id = fields.Int(required=True)
 
     @validates("start_time")
     def validate_start(self, value, **kwargs):

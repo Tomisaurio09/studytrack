@@ -6,7 +6,6 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask.views import MethodView
 from app.schemas.study_sessions_schema import StudySessionsSchema, EditStudySessionsSchema # Fixed import
 from app.utils.limiters import limiter
-from app.utils.error_handler import internal_request_exempt
 
 from datetime import datetime, timezone
 

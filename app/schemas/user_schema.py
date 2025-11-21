@@ -20,7 +20,7 @@ class RegisterSchema(Schema):
             raise ValidationError("The password must be at least 8 characters long.")
         
     @validates("password")
-    def validate_password_length(self, value, **kwargs):
+    def validate_password_complexity(self, value, **kwargs):
         if value.isalpha() or value.isdigit():
             raise ValidationError("The password must be a combination of letters and numbers.")
 

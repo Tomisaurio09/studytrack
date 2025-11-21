@@ -6,7 +6,6 @@ from flask_jwt_extended import create_access_token, create_refresh_token
 from flask.views import MethodView
 from app.schemas.user_schema import RegisterSchema, LoginSchema
 from app.utils.limiters import limiter
-from app.utils.error_handler import internal_request_exempt
 
 auth_bp = Blueprint("auth", "auth", url_prefix="/auth")
 
