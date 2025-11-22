@@ -7,7 +7,7 @@ from flask.views import MethodView
 from app.schemas.subject_schema import SubjectSchema, EditSubjectSchema  # Fixed import
 from datetime import datetime, timezone
 from app.utils.limiters import limiter
-
+import logging
 subject_bp = Blueprint("subject", "subject", url_prefix="/subjects")
 
 
@@ -33,6 +33,7 @@ class SubjectListCreate(MethodView):
 
         db.session.add(new_subject)
         db.session.commit()
+        logging.info(f"New subject with id {new_subject.id} was created successfully.")
         return {
             "message": "Subject added successfully",
             "id": new_subject.id,
@@ -73,6 +74,7 @@ class SubjectDetail(MethodView):
 
         subject = Subject.query.filter_by(id=id, user_id=current_user_id).first()
         if not subject:
+            logging.error("Subject was not found in the database.")
             return {"error": "Subject not found or unauthorized"}, 404
 
         # Update fields
@@ -85,6 +87,7 @@ class SubjectDetail(MethodView):
         subject.updated_at = datetime.now(timezone.utc)
 
         db.session.commit()
+        logging.info(f"Subject with id {id} updated successfully.")
         return {"message": "Subject updated successfully"}, 200
 
     @jwt_required()
@@ -95,8 +98,10 @@ class SubjectDetail(MethodView):
 
         subject = Subject.query.filter_by(id=id, user_id=current_user_id).first()
         if not subject:
+            logging.error("Subject was not found in the database.")
             return {"error": "Subject not found or unauthorized"}, 404
 
         db.session.delete(subject)
         db.session.commit()
+        logging.info("Subject was deleted succesfully.")
         return {"message": "Subject deleted successfully"}, 200

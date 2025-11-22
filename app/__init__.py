@@ -1,10 +1,11 @@
 import os
-from flask import Flask
+from flask import Flask, app
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_smorest import Api
 from flask_jwt_extended import JWTManager
 from .config import DevConfig, TestConfig, ProdConfig
+import logging
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -28,13 +29,19 @@ def create_app(env="development"):
 
     db.init_app(app)
     migrate.init_app(app, db)
-
     api.init_app(app)
-    
     jwt.init_app(app)
-    
     from app.utils.limiters import limiter
     limiter.init_app(app)
+
+        # --- Configuración de logs ---
+    if app.debug:
+        logging.basicConfig(
+            filename= 'app.log',
+            level=logging.DEBUG,
+            format='%(asctime)s %(levelname)s in %(module)s: %(message)s'
+        )
+
 
     try:
         from app.routes.auth_routes import auth_bp

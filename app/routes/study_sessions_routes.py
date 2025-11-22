@@ -6,8 +6,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask.views import MethodView
 from app.schemas.study_sessions_schema import StudySessionsSchema, EditStudySessionsSchema # Fixed import
 from app.utils.limiters import limiter
-
 from datetime import datetime, timezone
+import logging
 
 study_sessions_bp = Blueprint("sessions", "sessions", url_prefix="/sessions")
 
@@ -29,6 +29,7 @@ class StudySessionListCreate(MethodView):
         # Verify subject belongs to the user
         subject = Subject.query.filter_by(id=subject_id, user_id=current_user_id).first()
         if not subject:
+            logging.error(f"The subject '{subject}' was not found in the database or it's unauthorized.")
             return {"error": "Subject not found or unauthorized"}, 403
 
         start = datetime.strptime(session_data["start_time"], "%I:%M%p")
@@ -45,6 +46,7 @@ class StudySessionListCreate(MethodView):
 
         db.session.add(new_session)
         db.session.commit()
+        logging.info("Study session was added successfully.")
         return {
             "message": "Session added successfully",
             "id": new_session.id,
@@ -88,6 +90,7 @@ class StudySessionDetail(MethodView):
 
         session = StudySessions.query.get(id)
         if not session:
+            logging.error("Session was not found in the database.")
             return {"error": "Session not found"}, 404
 
         subject = Subject.query.filter_by(
@@ -96,6 +99,7 @@ class StudySessionDetail(MethodView):
         ).first()
 
         if not subject:
+            logging.error("Unauthorized attempt to update session.")
             return {"error": "Unauthorized"}, 403
         
         start = datetime.strptime(session_data["start_time"], "%I:%M%p")
@@ -106,6 +110,7 @@ class StudySessionDetail(MethodView):
         session.end_time = end
         session.duration_minutes = duration
         db.session.commit()
+        logging.info(f"Session with id {id} updated successfully.")
         return {"message": "Session updated successfully"}, 200
     
     @jwt_required()
@@ -115,6 +120,7 @@ class StudySessionDetail(MethodView):
 
         session = StudySessions.query.get(id)
         if not session:
+            logging.error("Session was not found in the database.")
             return {"error": "Session not found"}, 404
         
         subject = Subject.query.filter_by(
@@ -127,5 +133,5 @@ class StudySessionDetail(MethodView):
         
         db.session.delete(session)
         db.session.commit()
-
+        logging.info("Session was deleted succesfully.")
         return {"message": "Session deleted"}, 200
