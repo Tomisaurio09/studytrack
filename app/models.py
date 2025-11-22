@@ -47,8 +47,8 @@ class Subject(db.Model):
     __tablename__ = "subject"
 
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    name: so.Mapped[str] = so.mapped_column(sa.String(100), index=True, unique=True)
-    description: so.Mapped[str] = so.mapped_column(sa.String(512), index=True, unique=True)
+    name: so.Mapped[str] = so.mapped_column(sa.String(100), index=True)
+    description: so.Mapped[str] = so.mapped_column(sa.String(512))
 
     total_hours_goal: so.Mapped[int] = so.mapped_column(sa.Integer, default=0)
     total_hours_completed: so.Mapped[int] = so.mapped_column(sa.Integer, default=0)

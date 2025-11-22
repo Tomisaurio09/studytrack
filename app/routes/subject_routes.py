@@ -55,8 +55,8 @@ class SubjectListCreate(MethodView):
                 "total_hours_completed": s.total_hours_completed,
                 "priority_level": s.priority_level.value,
                 "status": s.status.value,
-                "created_at": s.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                "updated_at": s.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
+                "created_at": s.created_at.isoformat() if s.created_at else None,
+                "updated_at": s.updated_at.isoformat() if s.updated_at else None,
             }
             for s in subjects
         ]
@@ -68,6 +68,7 @@ class SubjectDetail(MethodView):
     @jwt_required()
     @subject_bp.arguments(EditSubjectSchema)
     @subject_bp.response(200)
+    @limiter.limit("70 per hour") 
     def put(self, user_data, id):
         """Update a subject (only owner can update)"""
         current_user_id = int(get_jwt_identity())

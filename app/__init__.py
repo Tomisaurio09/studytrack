@@ -6,7 +6,6 @@ from flask_smorest import Api
 from flask_jwt_extended import JWTManager
 from .config import DevConfig, TestConfig, ProdConfig
 import logging
-
 db = SQLAlchemy()
 migrate = Migrate()
 api = Api(spec_kwargs={
@@ -37,9 +36,12 @@ def create_app(env="development"):
         # --- Configuración de logs ---
     if app.debug:
         logging.basicConfig(
-            filename= 'app.log',
             level=logging.DEBUG,
-            format='%(asctime)s %(levelname)s in %(module)s: %(message)s'
+            format='%(asctime)s %(levelname)s in %(module)s: %(message)s',
+            handlers=[
+            logging.FileHandler('app.log'),
+            logging.StreamHandler()  # Also print to console
+        ]
         )
 
 

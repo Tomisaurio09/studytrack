@@ -41,17 +41,20 @@ class RegisterResource(MethodView):
 @auth_bp.route("/login")
 class LoginResource(MethodView):
     @auth_bp.arguments(LoginSchema)
-    @auth_bp.response(201)
+    @auth_bp.response(200)  
     @limiter.limit("20 per hour")
     def post(self, user_data):
         user = User.query.filter_by(username=user_data["username"]).first()
-        if user and user.check_password(user_data["password"]):
-            access_token = create_access_token(identity=str(user.id))
-            refresh_token = create_refresh_token(identity=str(user.id))
+        if not user or not user.check_password(user_data["password"]):
+            logging.warning(f"Failed login attempt for username: {user_data['username']}")
+            return {"error": "Invalid username or password"}, 401
+        
+        access_token = create_access_token(identity=str(user.id))
+        refresh_token = create_refresh_token(identity=str(user.id))
 
-            logging.info("Login was successful, the user will receive their token.")
-            return jsonify({
-                "message": "Login successful",
-                "access_token": access_token,
-                "refresh_token": refresh_token
-            })
+        logging.info(f"User '{user.username}' logged in successfully")
+        return jsonify({
+            "message": "Login successful",
+            "access_token": access_token,
+            "refresh_token": refresh_token
+        }), 200
