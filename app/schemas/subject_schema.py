@@ -1,4 +1,5 @@
-from marshmallow import Schema, fields, validates, ValidationError
+from marshmallow import Schema, fields, validates, validates_schema, ValidationError, pre_load, post_load
+import bleach
 
 class SubjectSchema(Schema):
     name = fields.Str(required=True)
@@ -8,6 +9,14 @@ class SubjectSchema(Schema):
     priority_level = fields.Str(required=True)
     status = fields.Str(required=True)
 
+    @pre_load
+    def sanitize_input(self, data, **kwargs):
+        text_fields = ["name", "description", "priority_level", "status"] 
+        for field in text_fields:
+            if field in data and isinstance(data[field], str):
+                data[field] = bleach.clean( data[field], tags=[],strip=True ) 
+        return data
+    
     @validates("name")
     def validate_name(self, value, **kwargs):
         if len(value) > 100:
@@ -22,7 +31,14 @@ class SubjectSchema(Schema):
     def validate_hours_goal(self, value, **kwargs):
         if value < 0:
             raise ValidationError("Total hours goal must be non-negative.")
-
+    
+    @post_load
+    def final_cleanup(self, data, **kwargs):
+        text_fields = ["name", "description", "priority_level", "status"] 
+        for field in text_fields:
+            if field in data:
+                data[field] = data[field].strip()
+        return data
 
 class EditSubjectSchema(Schema):
     name = fields.Str(required=True)
@@ -32,6 +48,14 @@ class EditSubjectSchema(Schema):
     priority_level = fields.Str(required=True)
     status = fields.Str(required=True)
 
+    @pre_load
+    def sanitize_input(self, data, **kwargs):
+        text_fields = ["name", "description", "priority_level", "status"] 
+        for field in text_fields:
+            if field in data and isinstance(data[field], str):
+                data[field] = bleach.clean( data[field], tags=[],strip=True ) 
+        return data
+    
     @validates("name")
     def validate_name(self, value, **kwargs):
         if len(value) > 100:
@@ -51,3 +75,11 @@ class EditSubjectSchema(Schema):
     def validate_hours_completed(self, value, **kwargs):
         if value < 0:
             raise ValidationError("Total hours completed must be non-negative.")
+
+    @post_load
+    def final_cleanup(self, data, **kwargs):
+        text_fields = ["name", "description", "priority_level", "status"] 
+        for field in text_fields:
+            if field in data:
+                data[field] = data[field].strip()
+        return data

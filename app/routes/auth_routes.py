@@ -6,6 +6,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token
 from flask.views import MethodView
 from app.schemas.user_schema import RegisterSchema, LoginSchema
 from app.utils.limiters import limiter
+from flask_jwt_extended import jwt_required, get_jwt_identity
 import logging
 
 auth_bp = Blueprint("auth", "auth", url_prefix="/auth")
@@ -58,3 +59,11 @@ class LoginResource(MethodView):
             "access_token": access_token,
             "refresh_token": refresh_token
         }), 200
+    
+@auth_bp.route("/refresh")
+class RefreshResource(MethodView):
+    @jwt_required(refresh=True)
+    def post(self):
+        user_id = get_jwt_identity()
+        access_token = create_access_token(identity=user_id)
+        return {"access_token": access_token}, 200

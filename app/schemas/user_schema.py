@@ -1,4 +1,5 @@
-from marshmallow import Schema, fields, validates, validates_schema, ValidationError
+from marshmallow import Schema, fields, validates, validates_schema, ValidationError, pre_load, post_load
+import bleach
 
 
 class RegisterSchema(Schema):
@@ -6,6 +7,13 @@ class RegisterSchema(Schema):
     email = fields.Email(required=True)
     password = fields.Str(required=True)
     confirm_password = fields.Str(required=True)
+    @pre_load
+    def sanitize_input(self, data, **kwargs):
+        text_fields = ["username", "email"] 
+        for field in text_fields:
+            if field in data and isinstance(data[field], str):
+                data[field] = bleach.clean( data[field], tags=[],strip=True ) 
+        return data
 
     @validates("username")
     def validate_username(self, value, **kwargs):
@@ -28,11 +36,22 @@ class RegisterSchema(Schema):
     def validate_password_match(self, data, **kwargs):
         if data.get("password") != data.get("confirm_password"):
             raise ValidationError("The passwords do not match", field_name="confirm_password")
-
+        
+    #optional
+    @post_load
+    def final_cleanup(self, data, **kwargs):
+        if "username" in data:
+            data["username"] = data["username"].strip()
+        return data
 
 class LoginSchema(Schema):
     username = fields.Str(required=True)
     password = fields.Str(required=True)
 
+    @pre_load
+    def sanitize_input(self, data, **kwargs):
+        if "username" in data:
+            data["username"] = bleach.clean(data["username"], tags=[], strip=True)
+        return data
 
 

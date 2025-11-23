@@ -32,9 +32,9 @@ class StudySessionListCreate(MethodView):
             logging.error(f"The subject '{subject}' was not found in the database or it's unauthorized.")
             return {"error": "Subject not found or unauthorized"}, 403
 
-        start = datetime.strptime(session_data["start_time"], "%I:%M%p")
-        end = datetime.strptime(session_data["end_time"], "%I:%M%p")
-
+        
+        start = session_data["start_time"]
+        end = session_data["end_time"]
         duration = int((end - start).total_seconds() // 60)
 
         new_session = StudySessions(
@@ -52,18 +52,21 @@ class StudySessionListCreate(MethodView):
             "id": new_session.id,
             "subject_id": new_session.subject_id
         }, 201
-    
+#debugging este
     @jwt_required()
     @limiter.limit("90 per hour")
     def get(self):
         """Get all sessions for the current subject"""
         current_user_id = int(get_jwt_identity())
-
         user_subjects = Subject.query.filter_by(user_id=current_user_id).all()
         subject_ids = [s.id for s in user_subjects]
+
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+
         sessions = StudySessions.query.filter(
             StudySessions.subject_id.in_(subject_ids)
-        ).all()
+        ).paginate(page=page, per_page=per_page, error_out=False)
 
         result = [
             {
@@ -73,10 +76,15 @@ class StudySessionListCreate(MethodView):
                 "end_time": ses.end_time.isoformat() if ses.end_time else None,
                 "duration_minutes": ses.duration_minutes
             }
-            for ses in sessions
+            for ses in sessions.items
         ]
 
-        return result, 200
+        return {
+            "sessions": result,
+            "total": sessions.total,
+            "page": sessions.page,
+            "pages": sessions.pages
+        }, 200
     
 @study_sessions_bp.route("/<int:id>")
 class StudySessionDetail(MethodView):
@@ -102,8 +110,8 @@ class StudySessionDetail(MethodView):
             logging.error("Unauthorized attempt to update session.")
             return {"error": "Unauthorized"}, 403
         
-        start = datetime.strptime(session_data["start_time"], "%I:%M%p")
-        end = datetime.strptime(session_data["end_time"], "%I:%M%p")
+        start = session_data["start_time"]
+        end = session_data["end_time"]
         duration = int((end - start).total_seconds() // 60)
 
         session.start_time = start

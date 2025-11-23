@@ -45,7 +45,10 @@ class SubjectListCreate(MethodView):
     def get(self):
         """Get all subjects for the current user"""
         current_user_id = int(get_jwt_identity())
-        subjects = Subject.query.filter_by(user_id=current_user_id).all()
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        #pagination object
+        subjects = Subject.query.filter_by(user_id=current_user_id).paginate(page=page, per_page=per_page, error_out=False)
         result = [
             {
                 "id": s.id,
@@ -58,9 +61,14 @@ class SubjectListCreate(MethodView):
                 "created_at": s.created_at.isoformat() if s.created_at else None,
                 "updated_at": s.updated_at.isoformat() if s.updated_at else None,
             }
-            for s in subjects
+            for s in subjects.items
         ]
-        return result, 200
+        return {
+            "subjects": result,
+            "total": subjects.total,
+            "page": subjects.page,
+            "pages": subjects.pages
+        }, 200
 
 
 @subject_bp.route("/<int:id>")
