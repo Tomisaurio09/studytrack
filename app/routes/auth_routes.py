@@ -35,9 +35,8 @@ class RegisterResource(MethodView):
         db.session.commit()
 
         logging.info(f"A new user has been created. Username: '{user_data['username']}' Email: '{user_data['email']}'")
-        return jsonify({
-            "message": "User created successfully"
-        })
+        # return plain dict; flask-smorest will handle serialization/status
+        return {"message": "User created successfully"}, 201
 
 @auth_bp.route("/login")
 class LoginResource(MethodView):
@@ -49,7 +48,7 @@ class LoginResource(MethodView):
         if not user or not user.check_password(user_data["password"]):
             logging.warning(f"Failed login attempt for username: {user_data['username']}")
             return {"error": "Invalid username or password"}, 401
-        
+
         access_token = create_access_token(identity=str(user.id))
         refresh_token = create_refresh_token(identity=str(user.id))
 
