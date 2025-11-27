@@ -29,7 +29,16 @@ def test_user(app):
         db.session.add(user)
         db.session.commit()
         return user.id
-
+    
+@pytest.fixture
+def user(app):
+    with app.app_context():
+        user = User(
+            username= "passwordtester",
+            email= "user@example.com"
+        )
+        return user
+    
 @pytest.fixture
 def access_token(test_user, app):
     #test user es un user_id

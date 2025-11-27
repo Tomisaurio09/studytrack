@@ -6,7 +6,7 @@ class StudySessionsSchema(Schema):
     subject_id = fields.Int(required=True)
     start_time = fields.DateTime(required=True)   
     end_time = fields.DateTime(required=True)
-
+    #you can pass 03:00PM as the hour format
     @pre_load
     def parse_hour_minute(self, data, **kwargs):
         for field in ["start_time", "end_time"]:
