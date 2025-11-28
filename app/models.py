@@ -78,7 +78,8 @@ class StudySessions(db.Model):
     start_time: so.Mapped[datetime] = so.mapped_column(sa.DateTime, default=datetime.now(timezone.utc))
     end_time: so.Mapped[Optional[datetime]] = so.mapped_column(sa.DateTime, nullable=True)
     duration_minutes: so.Mapped[Optional[int]] = so.mapped_column(sa.Integer, nullable=True)
+    notes: so.Mapped[str] = so.mapped_column(sa.String(2048), default="")
 
-    # Relación con Subject (many-to-one: muchas sesiones pertenecen a un subject)
+    
     subject_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("subject.id"), nullable=False)
     subject: so.Mapped[Subject] = so.relationship("Subject", back_populates="study_sessions")

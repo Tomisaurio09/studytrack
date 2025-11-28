@@ -20,12 +20,12 @@ class SubjectSchema(Schema):
     @validates("name")
     def validate_name(self, value, **kwargs):
         if len(value) > 100:
-            raise ValidationError("El nombre de la materia debe tener como máximo 100 caracteres.")
+            raise ValidationError("The name of the subject must be at most 100 characters long.")
         
     @validates("description")
     def validate_description(self, value, **kwargs):
         if len(value) > 512:
-            raise ValidationError("La descripción de la materia debe tener como máximo 512 caracteres.")
+            raise ValidationError("The description of the subject must be at most 512 characters long.")
 
     @validates("total_hours_goal")
     def validate_hours_goal(self, value, **kwargs):

@@ -41,7 +41,8 @@ class StudySessionListCreate(MethodView):
             start_time=start,
             end_time=end,
             duration_minutes=duration,
-            subject_id=subject_id
+            subject_id=subject_id,
+            notes=session_data.get("notes", None)
         )
 
         db.session.add(new_session)
@@ -74,7 +75,8 @@ class StudySessionListCreate(MethodView):
                 "subject_id": ses.subject_id,
                 "start_time": ses.start_time.isoformat() if ses.start_time else None,
                 "end_time": ses.end_time.isoformat() if ses.end_time else None,
-                "duration_minutes": ses.duration_minutes
+                "duration_minutes": ses.duration_minutes,
+                "notes": ses.notes
             }
             for ses in sessions.items
         ]
@@ -117,6 +119,7 @@ class StudySessionDetail(MethodView):
         session.start_time = start
         session.end_time = end
         session.duration_minutes = duration
+        session.notes = session_data.get("notes", None)
         db.session.commit()
         logging.info(f"Session with id {id} updated successfully.")
         return {"message": "Session updated successfully"}, 200

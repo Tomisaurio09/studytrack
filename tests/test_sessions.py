@@ -18,7 +18,8 @@ def test_create_study_session(client, auth_headers):
     session_payload = {
         "subject_id": subject_id,
         "start_time": "03:30PM",
-        "end_time": "04:30PM"
+        "end_time": "04:30PM",
+        "notes": "Studied chapters 1 to 3"
     }
     session_res = client.post("/sessions", headers=auth_headers, json=session_payload)
     assert session_res.status_code == 201
@@ -49,8 +50,9 @@ def test_put_study_sessions(client, auth_headers):
 
     session_payload = {
         "subject_id": subject_id,
-        "start_time": "03:30PM",
-        "end_time": "04:30PM"
+        "start_time": "03:00PM",
+        "end_time": "04:30PM",
+        "notes": "Studied chapters 1 to 5"
     }
     session_res = client.post("/sessions", headers=auth_headers, json=session_payload)
     assert session_res.status_code == 201
@@ -61,7 +63,8 @@ def test_put_study_sessions(client, auth_headers):
     payload_put = {
         "subject_id": subject_id,
         "start_time": "05:00PM",
-        "end_time": "08:00PM"
+        "end_time": "06:00PM",
+        "notes": "Studied chapters 6 to 15"
     }
     session_put_res = client.put(f"/sessions/{session_data['id']}", headers=auth_headers, json=payload_put)
     assert session_put_res.status_code == 200
@@ -86,7 +89,8 @@ def test_delete_study_sessions(client, auth_headers):
     session_payload = {
         "subject_id": subject_id,
         "start_time": "03:30PM",
-        "end_time": "04:30PM"
+        "end_time": "04:30PM",
+        "notes": "Studied chapters 1 to 5"
     }
     session_res = client.post("/sessions", headers=auth_headers, json=session_payload)
     assert session_res.status_code == 201
