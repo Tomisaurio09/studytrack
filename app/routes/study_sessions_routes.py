@@ -1,12 +1,13 @@
 from flask import request, jsonify
 from app.models import StudySessions, Subject
-from app import db
+from app import db, cache
 from flask_smorest import Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask.views import MethodView
 from app.schemas.study_sessions_schema import StudySessionsSchema, EditStudySessionsSchema # Fixed import
 from app.utils.limiters import limiter
 from datetime import datetime, timezone
+from app.utils.cache_utils import cache_key_user_sessions, invalidate_user_sessions_cache
 import logging
 
 study_sessions_bp = Blueprint("sessions", "sessions", url_prefix="/sessions")
@@ -47,6 +48,8 @@ class StudySessionListCreate(MethodView):
 
         db.session.add(new_session)
         db.session.commit()
+
+        invalidate_user_sessions_cache()
         logging.info("Study session was added successfully.")
         return {
             "message": "Session added successfully",
@@ -59,34 +62,49 @@ class StudySessionListCreate(MethodView):
     def get(self):
         """Get all sessions for the current subject"""
         current_user_id = int(get_jwt_identity())
-        user_subjects = Subject.query.filter_by(user_id=current_user_id).all()
-        subject_ids = [s.id for s in user_subjects]
-
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
+        
+        # Generate cache key
+        cache_key = cache_key_user_sessions(page, per_page)
+        
+        # Try to get from cache
+        cached_result = cache.get(cache_key)
+        if cached_result:
+            logging.info(f"Cache HIT for sessions (user {current_user_id}, page {page})")
+            return cached_result, 200
+        
+        logging.info(f"Cache MISS for sessions (user {current_user_id}, page {page})")
+        
+        user_subjects = Subject.query.filter_by(user_id=current_user_id).all()
+        subject_ids = [s.id for s in user_subjects]
 
         sessions = StudySessions.query.filter(
             StudySessions.subject_id.in_(subject_ids)
         ).paginate(page=page, per_page=per_page, error_out=False)
 
-        result = [
-            {
-                "session_id": ses.id,
-                "subject_id": ses.subject_id,
-                "start_time": ses.start_time.isoformat() if ses.start_time else None,
-                "end_time": ses.end_time.isoformat() if ses.end_time else None,
-                "duration_minutes": ses.duration_minutes,
-                "notes": ses.notes
-            }
-            for ses in sessions.items
-        ]
-
-        return {
-            "sessions": result,
+        result = {
+            "sessions": [
+                {
+                    "session_id": ses.id,
+                    "subject_id": ses.subject_id,
+                    "start_time": ses.start_time.isoformat() if ses.start_time else None,
+                    "end_time": ses.end_time.isoformat() if ses.end_time else None,
+                    "duration_minutes": ses.duration_minutes,
+                    "notes": ses.notes
+                }
+                for ses in sessions.items
+            ],
             "total": sessions.total,
             "page": sessions.page,
             "pages": sessions.pages
-        }, 200
+        }
+        
+        # Store in cache for 5 minutes
+        cache.set(cache_key, result, timeout=300)
+        
+        return result, 200
+
     
 @study_sessions_bp.route("/<int:id>")
 class StudySessionDetail(MethodView):
@@ -121,6 +139,8 @@ class StudySessionDetail(MethodView):
         session.duration_minutes = duration
         session.notes = session_data.get("notes", None)
         db.session.commit()
+
+        invalidate_user_sessions_cache()
         logging.info(f"Session with id {id} updated successfully.")
         return {"message": "Session updated successfully"}, 200
     
@@ -144,5 +164,6 @@ class StudySessionDetail(MethodView):
         
         db.session.delete(session)
         db.session.commit()
+        invalidate_user_sessions_cache()
         logging.info("Session was deleted succesfully.")
         return {"message": "Session deleted"}, 200

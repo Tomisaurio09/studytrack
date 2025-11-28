@@ -1,12 +1,13 @@
 from flask import request, jsonify
 from app.models import Subject
-from app import db
+from app import db, cache
 from flask_smorest import Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask.views import MethodView
 from app.schemas.subject_schema import SubjectSchema, EditSubjectSchema  # Fixed import
 from datetime import datetime, timezone
 from app.utils.limiters import limiter
+from app.utils.cache_utils import cache_key_user_subjects, invalidate_user_subjects_cache
 import logging
 subject_bp = Blueprint("subject", "subject", url_prefix="/subjects")
 
@@ -33,6 +34,8 @@ class SubjectListCreate(MethodView):
 
         db.session.add(new_subject)
         db.session.commit()
+        invalidate_user_subjects_cache()
+
         logging.info(f"New subject with id {new_subject.id} was created successfully.")
         return {
             "message": "Subject added successfully",
@@ -47,28 +50,40 @@ class SubjectListCreate(MethodView):
         current_user_id = int(get_jwt_identity())
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 10, type=int)
+        cache_key = cache_key_user_subjects(page, per_page)
+
+        cached_result = cache.get(cache_key)
+        if cached_result:
+            logging.info(f"Cache HIT for subjects (user {current_user_id}, page {page})")
+            return cached_result, 200
+        
+        logging.info(f"Cache MISS for subjects (user {current_user_id}, page {page})")
         #pagination object
         subjects = Subject.query.filter_by(user_id=current_user_id).paginate(page=page, per_page=per_page, error_out=False)
-        result = [
-            {
-                "id": s.id,
-                "name": s.name,
-                "description": s.description,
-                "total_hours_goal": s.total_hours_goal,
-                "total_hours_completed": s.total_hours_completed,
-                "priority_level": s.priority_level.value,
-                "status": s.status.value,
-                "created_at": s.created_at.isoformat() if s.created_at else None,
-                "updated_at": s.updated_at.isoformat() if s.updated_at else None,
-            }
-            for s in subjects.items
-        ]
-        return {
-            "subjects": result,
+        result = {
+            "subjects": [
+                {
+                    "id": s.id,
+                    "name": s.name,
+                    "description": s.description,
+                    "total_hours_goal": s.total_hours_goal,
+                    "total_hours_completed": s.total_hours_completed,
+                    "priority_level": s.priority_level.value,
+                    "status": s.status.value,
+                    "created_at": s.created_at.isoformat() if s.created_at else None,
+                    "updated_at": s.updated_at.isoformat() if s.updated_at else None,
+                }
+                for s in subjects.items
+            ],
             "total": subjects.total,
             "page": subjects.page,
             "pages": subjects.pages
-        }, 200
+        }
+        
+        # Store in cache for 5 minutes
+        cache.set(cache_key, result, timeout=300)
+        
+        return result, 200
 
 
 @subject_bp.route("/<int:id>")

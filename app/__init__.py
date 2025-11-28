@@ -1,11 +1,14 @@
-import os
-from flask import Flask, app
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_smorest import Api
 from flask_jwt_extended import JWTManager
 from .config import DevConfig, TestConfig, ProdConfig
 import logging
+from flask_caching import Cache
+
+
+
 db = SQLAlchemy()
 migrate = Migrate()
 api = Api(spec_kwargs={
@@ -14,7 +17,7 @@ api = Api(spec_kwargs={
     "openapi_version": "3.0.3",
 })
 jwt = JWTManager()
-
+cache = Cache()
 
 def create_app(env="development"):
     app = Flask(__name__)
@@ -30,6 +33,8 @@ def create_app(env="development"):
     migrate.init_app(app, db)
     api.init_app(app)
     jwt.init_app(app)
+    cache.init_app(app)
+    
     from app.utils.limiters import limiter
     limiter.init_app(app)
 

@@ -11,6 +11,12 @@ class Config:
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
 
+    CACHE_TYPE = "RedisCache"
+    CACHE_REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+    CACHE_REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
+    CACHE_REDIS_DB = int(os.environ.get("REDIS_DB", 0))
+    CACHE_REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD", None)
+    CACHE_DEFAULT_TIMEOUT = 300  # 5 minutes
 class DevConfig(Config):
     DEBUG = os.environ.get("DEBUG", "True") == "True"
     ENV = "development"
@@ -18,6 +24,7 @@ class DevConfig(Config):
         "DEV_DATABASE_URL",
         "sqlite:///dev.db"
     )
+    CACHE_TYPE = "SimpleCache"
 
 
 class TestConfig(Config):
