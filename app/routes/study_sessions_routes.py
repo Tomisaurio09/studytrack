@@ -9,6 +9,7 @@ from app.utils.limiters import limiter
 from datetime import datetime, timezone
 from app.utils.cache_utils import cache_key_user_sessions, invalidate_user_sessions_cache
 import logging
+from sqlalchemy.orm import joinedload
 
 study_sessions_bp = Blueprint("sessions", "sessions", url_prefix="/sessions")
 
@@ -56,7 +57,7 @@ class StudySessionListCreate(MethodView):
             "id": new_session.id,
             "subject_id": new_session.subject_id
         }, 201
-#debugging este
+
     @jwt_required()
     @limiter.limit("90 per hour")
     def get(self):
@@ -79,15 +80,19 @@ class StudySessionListCreate(MethodView):
         user_subjects = Subject.query.filter_by(user_id=current_user_id).all()
         subject_ids = [s.id for s in user_subjects]
 
-        sessions = StudySessions.query.filter(
-            StudySessions.subject_id.in_(subject_ids)
-        ).paginate(page=page, per_page=per_page, error_out=False)
+        sessions = (
+            db.session.query(StudySessions)
+            .options(joinedload(StudySessions.subject))   
+            .filter(StudySessions.subject_id.in_(subject_ids))
+            .paginate(page=page, per_page=per_page, error_out=False)
+        )
 
         result = {
             "sessions": [
                 {
                     "session_id": ses.id,
                     "subject_id": ses.subject_id,
+                    "subject_name": ses.subject.name,
                     "start_time": ses.start_time.isoformat() if ses.start_time else None,
                     "end_time": ses.end_time.isoformat() if ses.end_time else None,
                     "duration_minutes": ses.duration_minutes,

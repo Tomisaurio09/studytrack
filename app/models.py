@@ -23,7 +23,7 @@ class User(UserMixin, db.Model):
         back_populates="user",
         cascade="all, delete-orphan"
     )
-
+    
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
 
@@ -53,16 +53,19 @@ class Subject(db.Model):
     total_hours_goal: so.Mapped[int] = so.mapped_column(sa.Integer, default=0)
     total_hours_completed: so.Mapped[int] = so.mapped_column(sa.Integer, default=0)
 
-    created_at: so.Mapped[datetime] = so.mapped_column(sa.DateTime, default=datetime.now(timezone.utc))
+    created_at: so.Mapped[datetime] = so.mapped_column(sa.DateTime, default=datetime.now(timezone.utc), index=True)
     updated_at: so.Mapped[datetime] = so.mapped_column(sa.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
-    priority_level: so.Mapped[PriorityLevel] = so.mapped_column(SqlEnum(PriorityLevel), default=PriorityLevel.MEDIUM)
+    priority_level: so.Mapped[PriorityLevel] = so.mapped_column(SqlEnum(PriorityLevel), default=PriorityLevel.MEDIUM, index=True)
     status: so.Mapped[SubjectStatus] = so.mapped_column(SqlEnum(SubjectStatus), default=SubjectStatus.ACTIVE)
 
     # Relación con User (many-to-one)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("user.id"), nullable=False)
     user: so.Mapped[User] = so.relationship("User", back_populates="subjects")
 
+    __table_args__ = (
+        sa.Index("idx_subject_user_status", "user_id", "status"), #compuesto
+    )
     # Relación con Sessions (one-to-many)
     study_sessions: so.Mapped[list["StudySessions"]] = so.relationship(
         "StudySessions",
@@ -76,10 +79,11 @@ class StudySessions(db.Model):
 
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     start_time: so.Mapped[datetime] = so.mapped_column(sa.DateTime, default=datetime.now(timezone.utc))
-    end_time: so.Mapped[Optional[datetime]] = so.mapped_column(sa.DateTime, nullable=True)
+    end_time: so.Mapped[Optional[datetime]] = so.mapped_column(sa.DateTime, nullable=True, index=True)
     duration_minutes: so.Mapped[Optional[int]] = so.mapped_column(sa.Integer, nullable=True)
     notes: so.Mapped[str] = so.mapped_column(sa.String(2048), default="")
 
     
-    subject_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("subject.id"), nullable=False)
+    subject_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("subject.id"), nullable=False, index=True)
     subject: so.Mapped[Subject] = so.relationship("Subject", back_populates="study_sessions")
+
