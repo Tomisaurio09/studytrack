@@ -16,7 +16,7 @@ auth_bp = Blueprint("auth", "auth", url_prefix="/auth")
 class RegisterResource(MethodView):
     @auth_bp.arguments(RegisterSchema)
     @auth_bp.response(201)
-    @limiter.limit("20 per hour")
+    @limiter.limit("10 per minute")
     def post(self, user_data):
         if User.query.filter_by(username=user_data["username"]).first():
             logging.error(f"Registration error: Username '{user_data['username']}' already exists")
@@ -42,7 +42,7 @@ class RegisterResource(MethodView):
 class LoginResource(MethodView):
     @auth_bp.arguments(LoginSchema)
     @auth_bp.response(200)  
-    @limiter.limit("20 per hour")
+    @limiter.limit("10 per minute")
     def post(self, user_data):
         user = User.query.filter_by(username=user_data["username"]).first()
         if not user or not user.check_password(user_data["password"]):

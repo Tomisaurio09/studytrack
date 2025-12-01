@@ -7,7 +7,7 @@ from flask.views import MethodView
 from app.schemas.study_sessions_schema import StudySessionsSchema, EditStudySessionsSchema # Fixed import
 from app.utils.limiters import limiter
 from datetime import datetime, timezone
-from app.utils.cache_utils import cache_key_user_sessions, invalidate_user_sessions_cache
+from app.utils.cache_utils import cache_key_user_sessions, invalidate_user_sessions_cache, cache_key_user_single_session
 import logging
 from sqlalchemy.orm import joinedload
 
@@ -20,7 +20,7 @@ class StudySessionListCreate(MethodView):
     @jwt_required()
     @study_sessions_bp.arguments(StudySessionsSchema)
     @study_sessions_bp.response(201)
-    @limiter.limit("70 per hour")
+    @limiter.limit("20 per minute")
     def post(self, session_data):
         """Create a new session for the subject for the current user"""
         current_user_id = int(get_jwt_identity())
@@ -59,7 +59,7 @@ class StudySessionListCreate(MethodView):
         }, 201
 
     @jwt_required()
-    @limiter.limit("90 per hour")
+    @limiter.limit("100 per minute")
     def get(self):
         """Get all sessions for the current subject"""
         current_user_id = int(get_jwt_identity())
@@ -114,9 +114,52 @@ class StudySessionListCreate(MethodView):
 @study_sessions_bp.route("/<int:id>")
 class StudySessionDetail(MethodView):
     @jwt_required()
+    @limiter.limit("100 per minute")
+    def get(self,id):
+        """Get a single session for the current subject"""
+        current_user_id = int(get_jwt_identity())
+        
+        # Generate cache key
+        cache_key = cache_key_user_single_session(id)
+        
+        # Try to get from cache
+        cached_result = cache.get(cache_key)
+        if cached_result:
+            logging.info(f"Cache HIT for sessions (user {current_user_id}, session {id})")
+            return cached_result, 200
+        
+        logging.info(f"Cache MISS for sessions (user {current_user_id}, session {id})")
+        
+        session = (
+            db.session.query(StudySessions)
+            .options(joinedload(StudySessions.subject))
+            .join(Subject)
+            .filter(StudySessions.id == id, Subject.user_id == current_user_id)
+            .first()
+        )
+
+        if not session:
+            return {"error": "Study session not found"}, 404
+
+        result = {
+            "session_id": session.id,
+            "subject_id": session.subject_id,
+            "subject_name": session.subject.name,
+            "start_time": session.start_time.isoformat() if session.start_time else None,
+            "end_time": session.end_time.isoformat() if session.end_time else None,
+            "duration_minutes": session.duration_minutes,
+            "notes": session.notes
+        }
+
+        # Guardar en cache por 5 minutos
+        cache.set(cache_key, result, timeout=300)
+
+        return result, 200
+    
+    @jwt_required()
     @study_sessions_bp.arguments(EditStudySessionsSchema)
     @study_sessions_bp.response(200)
-    @limiter.limit("70 per hour")
+    @limiter.limit("20 per minute")
     def put(self, session_data, id):
         """Update a study session"""
         current_user_id = int(get_jwt_identity())
@@ -150,7 +193,7 @@ class StudySessionDetail(MethodView):
         return {"message": "Session updated successfully"}, 200
     
     @jwt_required()
-    @limiter.limit("50 per hour")
+    @limiter.limit("20 per minute")
     def delete(self, id):
         current_user_id = int(get_jwt_identity())
 

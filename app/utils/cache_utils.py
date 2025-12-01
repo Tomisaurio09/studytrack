@@ -7,10 +7,21 @@ def cache_key_user_subjects(page=1, per_page=10):
     user_id = get_jwt_identity()
     return f"user:{user_id}:subjects:page:{page}:per_page:{per_page}"
 
+def cache_key_user_single_subject(id):
+    """Generate cache key for user's subjects"""
+    user_id = get_jwt_identity()
+    return f"user:{user_id}:subject:{id}"
+
+
 def cache_key_user_sessions(page=1, per_page=10):
     """Generate cache key for user's sessions"""
     user_id = get_jwt_identity()
     return f"user:{user_id}:sessions:page:{page}:per_page:{per_page}"
+
+def cache_key_user_single_session(id):
+    """Generate cache key for user's subjects"""
+    user_id = get_jwt_identity()
+    return f"user:{user_id}:session:{id}"
 
 def invalidate_user_subjects_cache():
     """Delete all subject cache entries for current user"""

@@ -7,6 +7,7 @@ class RegisterSchema(Schema):
     email = fields.Email(required=True)
     password = fields.Str(required=True)
     confirm_password = fields.Str(required=True)
+    
     @pre_load
     def sanitize_input(self, data, **kwargs):
         text_fields = ["username", "email"] 
@@ -17,8 +18,8 @@ class RegisterSchema(Schema):
 
     @validates("username")
     def validate_username(self, value, **kwargs):
-        if not value.isalpha():
-            raise ValidationError("The name must contain only letters.")
+        if value.isalpha() or value.isdigit():
+            raise ValidationError("The username must be a combination of letters and numbers.")
         if len(value) > 15:
             raise ValidationError("The username must be at most 15 characters long.")
 

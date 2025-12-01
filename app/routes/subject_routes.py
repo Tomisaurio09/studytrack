@@ -7,7 +7,7 @@ from flask.views import MethodView
 from app.schemas.subject_schema import SubjectSchema, EditSubjectSchema  # Fixed import
 from datetime import datetime, timezone
 from app.utils.limiters import limiter
-from app.utils.cache_utils import cache_key_user_subjects, invalidate_user_subjects_cache
+from app.utils.cache_utils import cache_key_user_subjects, invalidate_user_subjects_cache, cache_key_user_single_subject
 import logging
 subject_bp = Blueprint("subject", "subject", url_prefix="/subjects")
 
@@ -17,7 +17,7 @@ class SubjectListCreate(MethodView):
     @jwt_required()
     @subject_bp.arguments(SubjectSchema)
     @subject_bp.response(201)
-    @limiter.limit("70 per hour")
+    @limiter.limit("20 per minute")
     def post(self, user_data):
         """Create a new subject for the current user"""
         current_user_id = int(get_jwt_identity())
@@ -44,7 +44,7 @@ class SubjectListCreate(MethodView):
         }, 201
 
     @jwt_required()
-    @limiter.limit("60 per hour")
+    @limiter.limit("100 per minute")
     def get(self):
         """Get all subjects for the current user"""
         current_user_id = int(get_jwt_identity())
@@ -89,9 +89,43 @@ class SubjectListCreate(MethodView):
 @subject_bp.route("/<int:id>")
 class SubjectDetail(MethodView):
     @jwt_required()
+    @limiter.limit("100 per minute")
+    def get(self, id):
+        """Get a single subject for the current user"""
+        current_user_id = int(get_jwt_identity())
+        cache_key = cache_key_user_single_subject(id)
+
+        cached_result = cache.get(cache_key)
+        if cached_result:
+            logging.info(f"Cache HIT for subjects (user {current_user_id}, subject {id})")
+            return cached_result, 200
+        
+        logging.info(f"Cache MISS for subjects (user {current_user_id}, subject {id})")
+        subject = Subject.query.filter_by(id=id,user_id=current_user_id).first()
+        if not subject:
+            return {"error": "Subject not found"}, 404
+
+        result = {
+            "id": subject.id,
+            "name": subject.name,
+            "description": subject.description,
+            "total_hours_goal": subject.total_hours_goal,
+            "total_hours_completed": subject.total_hours_completed,
+            "priority_level": subject.priority_level.value,
+            "status": subject.status.value,
+            "created_at": subject.created_at.isoformat() if subject.created_at else None,
+            "updated_at": subject.updated_at.isoformat() if subject.updated_at else None,
+        }
+
+        # Guardar en cache por 5 minutos
+        cache.set(cache_key, result, timeout=300)
+
+        return result, 200
+    
+    @jwt_required()
     @subject_bp.arguments(EditSubjectSchema)
     @subject_bp.response(200)
-    @limiter.limit("70 per hour") 
+    @limiter.limit("20 per minute") 
     def put(self, user_data, id):
         """Update a subject (only owner can update)"""
         current_user_id = int(get_jwt_identity())
@@ -111,11 +145,12 @@ class SubjectDetail(MethodView):
         subject.updated_at = datetime.now(timezone.utc)
 
         db.session.commit()
+        invalidate_user_subjects_cache()
         logging.info(f"Subject with id {id} updated successfully.")
         return {"message": "Subject updated successfully"}, 200
 
     @jwt_required()
-    @limiter.limit("50 per hour")
+    @limiter.limit("20 per minute")
     def delete(self, id):
         """Delete a subject (only owner can delete)"""
         current_user_id = int(get_jwt_identity())
@@ -127,5 +162,6 @@ class SubjectDetail(MethodView):
 
         db.session.delete(subject)
         db.session.commit()
+        invalidate_user_subjects_cache()
         logging.info("Subject was deleted succesfully.")
         return {"message": "Subject deleted successfully"}, 200

@@ -29,6 +29,13 @@ def create_app(env="development"):
     else:
         app.config.from_object(DevConfig)
 
+    app.config["API_TITLE"] = "StudyTrack API"
+    app.config["API_VERSION"] = "1.0.0"
+    app.config["OPENAPI_VERSION"] = "3.0.3"
+    app.config["OPENAPI_URL_PREFIX"] = "/"  # prefijo de las rutas
+    app.config["OPENAPI_SWAGGER_UI_PATH"] = "/swagger-ui"
+    app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
+    
     db.init_app(app)
     migrate.init_app(app, db)
     api.init_app(app)

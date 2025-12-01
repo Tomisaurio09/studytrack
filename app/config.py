@@ -17,6 +17,7 @@ class Config:
     CACHE_REDIS_DB = int(os.environ.get("REDIS_DB", 0))
     CACHE_REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD", None)
     CACHE_DEFAULT_TIMEOUT = 300  # 5 minutes
+    
 class DevConfig(Config):
     DEBUG = os.environ.get("DEBUG", "True") == "True"
     ENV = "development"
@@ -35,6 +36,7 @@ class TestConfig(Config):
         "TEST_DATABASE_URL",
         "sqlite:///test.db"
     )
+    CACHE_TYPE = "SimpleCache"
 
 
 class ProdConfig(Config):

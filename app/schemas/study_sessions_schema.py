@@ -14,27 +14,26 @@ class StudySessionsSchema(Schema):
             if field in data and isinstance(data[field], str):
                 today = datetime.today().date()
                 try:
-                    # Try AM/PM format
+                    # Primero intenta AM/PM
                     parsed_time = datetime.strptime(data[field].strip(), "%I:%M%p").time()
                 except ValueError:
                     try:
-                        # Try 24-hour format
+                        # Si falla, intenta formato 24 horas
                         parsed_time = datetime.strptime(data[field].strip(), "%H:%M").time()
                     except ValueError:
                         raise ValidationError({field: "Invalid time format"})
                 data[field] = datetime.combine(today, parsed_time).isoformat()
         return data
 
-    
-    @pre_load
-    def parse_hour_minute(self, data, **kwargs):
-        for field in ["start_time", "end_time"]:
-            if field in data and isinstance(data[field], str):
-                today = datetime.today().date()
-                parsed_time = datetime.strptime(data[field], "%I:%M%p").time()
-                data[field] = datetime.combine(today, parsed_time).isoformat()
-        return data
 
+    @pre_load
+    def sanitize_input(self, data, **kwargs):
+        text_fields = ["notes"] 
+        for field in text_fields:
+            if field in data and isinstance(data[field], str):
+                data[field] = bleach.clean( data[field], tags=[],strip=True ) 
+        return data
+    
     @validates_schema
     def validate_time_order(self, data, **kwargs):
         start = data["start_time"]
@@ -65,11 +64,11 @@ class EditStudySessionsSchema(Schema):
             if field in data and isinstance(data[field], str):
                 today = datetime.today().date()
                 try:
-                    # Try AM/PM format
+                    # Primero intenta AM/PM
                     parsed_time = datetime.strptime(data[field].strip(), "%I:%M%p").time()
                 except ValueError:
                     try:
-                        # Try 24-hour format
+                        # Si falla, intenta formato 24 horas
                         parsed_time = datetime.strptime(data[field].strip(), "%H:%M").time()
                     except ValueError:
                         raise ValidationError({field: "Invalid time format"})
