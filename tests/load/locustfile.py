@@ -18,7 +18,7 @@ class StudyTrackUser(HttpUser):
         """
         # --- Registro ---
         register_payload = {
-            "username": f"user_{random.randint(1, 999999)}",
+            "username": f"user{random.randint(1, 999999)}",
             "email": f"user{random.randint(1, 999999)}@test.com",
             "password": "john123456",
             "confirm_password": "john123456"
@@ -48,14 +48,14 @@ class StudyTrackUser(HttpUser):
             if res.status_code == 429:
                 time.sleep(delay)
                 delay *= 2
-            # Manejo de 404: no reintentar, solo loguear
+            
             if res.status_code == 404:
-                print(f"Recurso no encontrado: {url}")
+                print(f"Resource not found: {url}")
                 return res
             
-            # Manejo de 403: loguear y salir
+            
             if res.status_code == 403:
-                print(f"Acceso prohibido: {url}")
+                print(f"Forbidden access: {url}")
                 return res
             
             return res
@@ -118,8 +118,7 @@ class StudyTrackUser(HttpUser):
     @task(1)
     def create_session(self):
         """
-        Para crear una session, necesito subject_id.
-        Si no hay, creo un subject primero.
+        To create a session, we need a subject_id.
         """
         if self.last_subject_id is None:
             # Creo subject automáticamente

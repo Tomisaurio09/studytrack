@@ -1,7 +1,7 @@
 
 def test_register_user(client):
     payload = {
-        "username": "testuser",
+        "username": "testuser123",
         "email": "test@example.com",
         "password": "thomas123",
         "confirm_password": "thomas123"
@@ -14,14 +14,14 @@ def test_register_user(client):
 
 def test_login_user(client):
     client.post("/auth/register", json={
-        "username": "john",
+        "username": "john123",
         "email": "john@test.com",
         "password": "john12345",
         "confirm_password": "john12345"
         })
 
     res = client.post("/auth/login", json={
-        "username": "john",
+        "username": "john123",
         "password": "john12345"
     })
 

@@ -1,6 +1,6 @@
 from marshmallow import Schema, fields, validates, validates_schema, ValidationError, pre_load, post_load
 import bleach
-
+import re
 
 class RegisterSchema(Schema):
     username = fields.Str(required=True)
@@ -18,10 +18,18 @@ class RegisterSchema(Schema):
 
     @validates("username")
     def validate_username(self, value, **kwargs):
-        if value.isalpha() or value.isdigit():
-            raise ValidationError("The username must be a combination of letters and numbers.")
+        # Solo letras y números
+        if not re.match(r"^[A-Za-z0-9]+$", value):
+            raise ValidationError("The username must contain only letters and numbers.")
+
+        # Al menos una letra y un número
+        if not (re.search(r"[A-Za-z]", value) and re.search(r"[0-9]", value)):
+            raise ValidationError("The username must include both letters and numbers.")
+
+        # Longitud máxima
         if len(value) > 15:
             raise ValidationError("The username must be at most 15 characters long.")
+
 
     @validates("password")
     def validate_password_length(self, value, **kwargs):
