@@ -107,12 +107,12 @@ REDIS_PASSWORD=
 
 ## 📖 Documentation
 
-Comprehensive documentation is available in the [`docs/`](docs/) directory:
+Comprehensive documentation is available in the [`app/docs/`](app/docs/) directory:
 
-- **[API Reference](docs/API.md)** - Complete endpoint documentation with examples
-- **[Architecture Guide](docs/ARCHITECTURE.md)** - System design, database schema, design decisions
-- **[Testing Guide](docs/TESTING.md)** - Unit tests, integration tests, load testing
-- **[Documentation Index](docs/README.md)** - Overview and quick reference
+- **[API Reference](app/docs/API.md)** - Complete endpoint documentation with examples
+- **[Architecture Guide](app/docs/ARCHITECTURE.md)** - System design, database schema, design decisions
+- **[Testing Guide](app/docs/TESTING.md)** - Unit tests, integration tests, load testing
+- **[Documentation Index](app/docs/README.md)** - Overview and quick reference
 
 ### Interactive API Documentation
 
@@ -173,7 +173,7 @@ curl -X POST http://localhost:5000/sessions \
   }'
 ```
 
-More examples in [docs/API.md](docs/API.md)
+More examples in [app/docs/API.md](app/docs/API.md)
 
 ---
 
@@ -195,7 +195,7 @@ locust -f tests/load/locustfile.py --host=http://localhost:5000
 # Open http://localhost:8089 for web UI
 ```
 
-See [docs/TESTING.md](docs/TESTING.md) for comprehensive testing guide.
+See [app/docs/TESTING.md](app/docs/TESTING.md) for comprehensive testing guide.
 
 ---
 
