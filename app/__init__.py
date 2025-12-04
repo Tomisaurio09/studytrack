@@ -32,7 +32,7 @@ def create_app(env="development"):
     app.config["API_TITLE"] = "StudyTrack API"
     app.config["API_VERSION"] = "1.0.0"
     app.config["OPENAPI_VERSION"] = "3.0.3"
-    app.config["OPENAPI_URL_PREFIX"] = "/"  # prefijo de las rutas
+    app.config["OPENAPI_URL_PREFIX"] = "/"  
     app.config["OPENAPI_SWAGGER_UI_PATH"] = "/swagger-ui"
     app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
     
@@ -45,14 +45,13 @@ def create_app(env="development"):
     from app.utils.limiters import limiter
     limiter.init_app(app)
 
-        # --- Configuración de logs ---
     if app.debug:
         logging.basicConfig(
             level=logging.DEBUG,
             format='%(asctime)s %(levelname)s in %(module)s: %(message)s',
             handlers=[
             logging.FileHandler('app.log'),
-            logging.StreamHandler()  # Also print to console
+            logging.StreamHandler()  
         ]
         )
 

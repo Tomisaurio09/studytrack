@@ -17,7 +17,6 @@ class User(UserMixin, db.Model):
     email: so.Mapped[str] = so.mapped_column(sa.String(120), index=True, unique=True)
     password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(256))
 
-    # Relación con Subject (one-to-many)
     subjects: so.Mapped[list["Subject"]] = so.relationship(
         "Subject",
         back_populates="user",
@@ -59,14 +58,12 @@ class Subject(db.Model):
     priority_level: so.Mapped[PriorityLevel] = so.mapped_column(SqlEnum(PriorityLevel), default=PriorityLevel.MEDIUM, index=True)
     status: so.Mapped[SubjectStatus] = so.mapped_column(SqlEnum(SubjectStatus), default=SubjectStatus.ACTIVE)
 
-    # Relación con User (many-to-one)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey("user.id"), nullable=False)
     user: so.Mapped[User] = so.relationship("User", back_populates="subjects")
 
     __table_args__ = (
-        sa.Index("idx_subject_user_status", "user_id", "status"), #compuesto
+        sa.Index("idx_subject_user_status", "user_id", "status"), 
     )
-    # Relación con Sessions (one-to-many)
     study_sessions: so.Mapped[list["StudySessions"]] = so.relationship(
         "StudySessions",
         back_populates="subject",

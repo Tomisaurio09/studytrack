@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields, validates, validates_schema, ValidationError, pre_load, post_load
+from marshmallow import Schema, fields, validates, ValidationError, pre_load, post_load
 import bleach
 
 class SubjectSchema(Schema):

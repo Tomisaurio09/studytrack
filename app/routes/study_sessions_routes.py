@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request
 from app.models import StudySessions, Subject
 from app import db, cache
 from flask_smorest import Blueprint
@@ -6,14 +6,12 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask.views import MethodView
 from app.schemas.study_sessions_schema import StudySessionsSchema, EditStudySessionsSchema # Fixed import
 from app.utils.limiters import limiter
-from datetime import datetime, timezone
 from app.utils.cache_utils import cache_key_user_sessions, invalidate_user_sessions_cache, cache_key_user_single_session
 import logging
 from sqlalchemy.orm import joinedload
 
 study_sessions_bp = Blueprint("sessions", "sessions", url_prefix="/sessions")
 
-#LOS 4 CRUD ENDPOINTS
 
 @study_sessions_bp.route("")
 class StudySessionListCreate(MethodView):
@@ -151,7 +149,6 @@ class StudySessionDetail(MethodView):
             "notes": session.notes
         }
 
-        # Guardar en cache por 5 minutos
         cache.set(cache_key, result, timeout=300)
 
         return result, 200

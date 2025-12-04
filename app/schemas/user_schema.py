@@ -18,15 +18,12 @@ class RegisterSchema(Schema):
 
     @validates("username")
     def validate_username(self, value, **kwargs):
-        # Solo letras y números
         if not re.match(r"^[A-Za-z0-9]+$", value):
             raise ValidationError("The username must contain only letters and numbers.")
 
-        # Al menos una letra y un número
         if not (re.search(r"[A-Za-z]", value) and re.search(r"[0-9]", value)):
             raise ValidationError("The username must include both letters and numbers.")
 
-        # Longitud máxima
         if len(value) > 15:
             raise ValidationError("The username must be at most 15 characters long.")
 

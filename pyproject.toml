@@ -1,0 +1,112 @@
+[project]
+name = "studytrack"
+version = "0.1.0"
+description = "StudyTrack backend"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Thomas Acevedo", email = "tomasacevedo659@gmail.com" }]
+license = { text = "MIT" }
+keywords = ["flask", "backend", "api", "study", "redis", "jwt"]
+
+dependencies = [
+    "alembic",
+    "apispec",
+    "bidict",
+    "bleach",
+    "blinker",
+    "brotli",
+    "cachelib",
+    "certifi",
+    "charset-normalizer",
+    "click",
+    "configargparse",
+    "deprecated",
+    "flask",
+    "flask-caching",
+    "flask-cors",
+    "flask-jwt-extended",
+    "flask-limiter",
+    "flask-login",
+    "flask-migrate",
+    "flask-smorest",
+    "flask-sqlalchemy",
+    "gevent",
+    "geventhttpclient",
+    "greenlet",
+    "h11",
+    "idna",
+    "itsdangerous",
+    "jinja2",
+    "limits",
+    "mako",
+    "markdown-it-py",
+    "markupsafe",
+    "marshmallow",
+    "mdurl",
+    "msgpack",
+    "ordered-set",
+    "packaging",
+    "platformdirs",
+    "psutil",
+    "pygments",
+    "pyjwt",
+    "python-dotenv",
+    "python-engineio",
+    "python-socketio",
+    "pyzmq",
+    "redis",
+    "requests",
+    "rich",
+    "simple-websocket",
+    "sqlalchemy",
+    "typing-extensions",
+    "urllib3",
+    "uv",
+    "webargs",
+    "webencodings",
+    "websocket-client",
+    "werkzeug",
+    "wrapt",
+    "wsproto",
+    "zope-event",
+    "zope-interface",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "coverage",
+    "locust",
+    "black",
+    "ruff",
+]
+
+[project.scripts]
+studytrack = "app.run:main"
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W"]
+ignore = ["E501"]
+exclude = [".git", "venv", "migrations", "__pycache__"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+addopts = "-ra -q"
+
+[tool.coverage.run]
+branch = true
+source = ["app"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

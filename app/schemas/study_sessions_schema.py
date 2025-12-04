@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields, validates, validates_schema, ValidationError, pre_load, post_load
+from marshmallow import Schema, fields,validates_schema, ValidationError, pre_load, post_load
 import bleach
 from datetime import datetime
 
@@ -14,11 +14,9 @@ class StudySessionsSchema(Schema):
             if field in data and isinstance(data[field], str):
                 today = datetime.today().date()
                 try:
-                    # Primero intenta AM/PM
                     parsed_time = datetime.strptime(data[field].strip(), "%I:%M%p").time()
                 except ValueError:
                     try:
-                        # Si falla, intenta formato 24 horas
                         parsed_time = datetime.strptime(data[field].strip(), "%H:%M").time()
                     except ValueError:
                         raise ValidationError({field: "Invalid time format"})
@@ -64,11 +62,9 @@ class EditStudySessionsSchema(Schema):
             if field in data and isinstance(data[field], str):
                 today = datetime.today().date()
                 try:
-                    # Primero intenta AM/PM
                     parsed_time = datetime.strptime(data[field].strip(), "%I:%M%p").time()
                 except ValueError:
                     try:
-                        # Si falla, intenta formato 24 horas
                         parsed_time = datetime.strptime(data[field].strip(), "%H:%M").time()
                     except ValueError:
                         raise ValidationError({field: "Invalid time format"})

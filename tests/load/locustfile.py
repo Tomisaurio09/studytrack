@@ -3,20 +3,13 @@ import random
 import time
 
 class StudyTrackUser(HttpUser):
-    wait_time = between(1, 3)  # cada usuario espera entre 1 y 3 secs entre requests
+    wait_time = between(1, 3)  
     last_subject_id = None
     last_session_id = None
     access_token = None
     headers = {}
     
     def on_start(self):
-        """
-        Esto corre cada vez que un usuario virtual comienza.
-        1. Se registra
-        2. Inicia sesión
-        3. Guarda el token
-        """
-        # --- Registro ---
         register_payload = {
             "username": f"user{random.randint(1, 999999)}",
             "email": f"user{random.randint(1, 999999)}@test.com",
@@ -25,7 +18,6 @@ class StudyTrackUser(HttpUser):
         }
         self.client.post("/auth/register", json=register_payload)
 
-        # --- Login ---
         login_payload = {
             "username": register_payload["username"],
             "password": "john123456"
@@ -64,7 +56,7 @@ class StudyTrackUser(HttpUser):
     #                              SUBJECTS
     # -------------------------------------------------------------------
 
-    @task(2)  # más peso => se ejecuta más seguido
+    @task(2)  
     def get_subjects(self):
         self.client.get("/subjects", headers=self.headers)
 
@@ -85,7 +77,6 @@ class StudyTrackUser(HttpUser):
     @task(1)
     def update_subject(self):
         if self.last_subject_id is not None:
-            # Verificar existencia antes de PUT
             check = self.client.get(f"/subjects/{self.last_subject_id}", headers=self.headers)
             if check.status_code == 200:
                 payload = {
@@ -101,7 +92,6 @@ class StudyTrackUser(HttpUser):
     @task(1)
     def delete_subject(self):
         if self.last_subject_id is not None:
-            # Verificar existencia antes de DELETE
             check = self.client.get(f"/subjects/{self.last_subject_id}", headers=self.headers)
             if check.status_code == 200:
                 self.request_with_backoff("DELETE", f"/subjects/{self.last_subject_id}", headers=self.headers)
@@ -121,7 +111,6 @@ class StudyTrackUser(HttpUser):
         To create a session, we need a subject_id.
         """
         if self.last_subject_id is None:
-            # Creo subject automáticamente
             self.create_subject()
 
         payload = {

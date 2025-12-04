@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request
 from app.models import Subject
 from app import db, cache
 from flask_smorest import Blueprint
@@ -117,7 +117,6 @@ class SubjectDetail(MethodView):
             "updated_at": subject.updated_at.isoformat() if subject.updated_at else None,
         }
 
-        # Guardar en cache por 5 minutos
         cache.set(cache_key, result, timeout=300)
 
         return result, 200
