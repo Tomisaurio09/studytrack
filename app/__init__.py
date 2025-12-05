@@ -6,6 +6,9 @@ from flask_jwt_extended import JWTManager
 from .config import DevConfig, TestConfig, ProdConfig
 import logging
 from flask_caching import Cache
+from flask_cors import CORS
+from app.utils.middleware import enforce_allowed_hosts
+
 
 
 
@@ -18,6 +21,7 @@ api = Api(spec_kwargs={
 })
 jwt = JWTManager()
 cache = Cache()
+
 
 def create_app(env="development"):
     app = Flask(__name__)
@@ -35,13 +39,20 @@ def create_app(env="development"):
     app.config["OPENAPI_URL_PREFIX"] = "/"  
     app.config["OPENAPI_SWAGGER_UI_PATH"] = "/swagger-ui"
     app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
-    
+    CORS(
+        app,
+        origins=["https://studytrack.com"],
+        supports_credentials=True,
+        methods=["GET", "POST", "PUT", "DELETE"],
+        allow_headers=["Content-Type", "Authorization"],
+    )
     db.init_app(app)
     migrate.init_app(app, db)
     api.init_app(app)
     jwt.init_app(app)
     cache.init_app(app)
-    
+
+    enforce_allowed_hosts(app)
     from app.utils.limiters import limiter
     limiter.init_app(app)
 

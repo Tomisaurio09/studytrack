@@ -62,8 +62,7 @@ class StudySessionListCreate(MethodView):
         """Get all sessions for the current subject"""
         current_user_id = int(get_jwt_identity())
         page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 10, type=int)
-        
+        per_page = min(request.args.get('per_page', 10, type=int), 100)        
         # Generate cache key
         cache_key = cache_key_user_sessions(page, per_page)
         

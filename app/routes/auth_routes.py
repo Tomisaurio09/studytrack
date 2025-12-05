@@ -31,11 +31,15 @@ class RegisterResource(MethodView):
         )
         new_user.set_password(user_data["password"])
 
-        db.session.add(new_user)
-        db.session.commit()
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Error creating user: {e}")
+            return {"error": "An error occurred while creating the user"}, 500
 
         logging.info(f"A new user has been created. Username: '{user_data['username']}' Email: '{user_data['email']}'")
-        # return plain dict; flask-smorest will handle serialization/status
         return {"message": "User created successfully"}, 201
 
 @auth_bp.route("/login")
@@ -52,7 +56,12 @@ class LoginResource(MethodView):
         access_token = create_access_token(identity=str(user.id))
         refresh_token = create_refresh_token(identity=str(user.id))
 
-        logging.info(f"User '{user.username}' logged in successfully")
+        logging.info(
+            "User login successful",
+            extra={
+                "user_id": user.id,
+                "username": user.username}
+        )
         return jsonify({
             "message": "Login successful",
             "access_token": access_token,
