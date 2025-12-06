@@ -44,7 +44,7 @@ class ProdConfig(Config):
     TESTING = False
     ENV = "production"
     SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "PROD_DATABASE_URL",
+        "DATABASE_URL",
         "sqlite:///prod.db"
     )
 
