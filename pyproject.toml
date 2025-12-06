@@ -33,6 +33,7 @@ dependencies = [
     "gevent",
     "geventhttpclient",
     "greenlet",
+    "gunicorn",
     "h11",
     "idna",
     "itsdangerous",
