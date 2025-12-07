@@ -49,6 +49,7 @@ dependencies = [
     "packaging",
     "platformdirs",
     "psutil",
+    "psycopg2-binary",
     "pygments",
     "pyjwt",
     "python-dotenv",

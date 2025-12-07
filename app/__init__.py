@@ -86,6 +86,12 @@ def create_app():
     from app.utils.error_handler import register_error_handlers
     register_error_handlers(app)
     
+    with app.app_context():
+        try:
+            db.create_all()
+            print(">>> Tablas creadas automáticamente (si no existían).")
+        except Exception as e:
+            print(f"Error creando tablas: {e}")
     return app
 
 
