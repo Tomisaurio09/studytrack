@@ -8,7 +8,7 @@ import logging
 from flask_caching import Cache
 from flask_cors import CORS
 from app.utils.middleware import enforce_allowed_hosts
-
+import os
 
 
 
@@ -23,8 +23,12 @@ jwt = JWTManager()
 cache = Cache()
 
 
-def create_app(env="development"):
+def create_app():
     app = Flask(__name__)
+
+    env = os.environ.get("FLASK_ENV", "development")
+    print(">>> Running environment:", env)
+    print(">>> DATABASE_URL:", os.environ.get("DATABASE_URL"))
 
     if env == "production":
         app.config.from_object(ProdConfig)
